@@ -4,7 +4,7 @@ Code for 1994 anti-antivirus in ms-dos or Win 3.1
 # Retrovirus Assembly Code
 
 This is a sample assembly code implementation of a retrovirus, as described in the 1994 Virus Bulletin paper "Retroviruses - how viruses fight back".
-[Link to the original paper]([https://ia801306.us.archive.org/3/items/Mikko_Retroviruses_1994_06/retro.pdf])
+[Link to the original paper](https://ia801306.us.archive.org/3/items/Mikko_Retroviruses_1994_06/retro.pdf)
 
 
 ## Compiling and Running

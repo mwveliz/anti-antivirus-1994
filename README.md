@@ -11,7 +11,7 @@ This is a sample assembly code implementation of a retrovirus, as described in t
 
 The code is written for 16-bit x86 architectures, targeting MS-DOS or Windows 3.1 operating systems.
 
-To compile the code, you'll need an assembler like MASM or TASM. For example, to compile using TASM:
+To compile the code, you'll need an assembler like MASM or TASM (or nasm in GNU/LINUX using mode -t). For example, to compile using TASM:
 ```
 tasm /zi retrovirus.asm
 tlink /t retrovirus.obj

